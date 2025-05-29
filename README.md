@@ -1,117 +1,145 @@
+
 # 📄 Document Intelligence Platform
 
-A full-stack Retrieval-Augmented Generation (RAG) system that lets users upload documents, store them locally, extract and embed content into a vector database (ChromaDB), and ask questions answered by AI using the uploaded content.
+A full-stack Retrieval-Augmented Generation (RAG) system that allows users to upload documents, store them locally, extract embeddings into ChromaDB, and query content using OpenAI/LLM. Built using Django, MySQL, ChromaDB, and ReactJS with Tailwind CSS.
 
 ---
 
 ## 🔍 Description
 
-A RAG-based document question-answering platform using Django, ReactJS, MySQL, ChromaDB, and OpenAI API to extract insights from uploaded documents.
+A RAG-based document QA system that enables users to upload PDFs or text files, automatically parse and embed content, store vectors using ChromaDB, and query using LLMs (OpenAI or LM Studio). Ideal for exploring unstructured document data with AI-powered answers.
 
 ---
 
 ## 🖼️ Screenshots
 
-### Upload Document Page
+### Upload Document Page  
 ![Upload Screenshot](./screenshot-1.png)
 
-### Chat with Document Page
-![Chat Screenshot](./Screenshot-2.png)
+### Chat with Document Page  
+![Chat Screenshot](./screenshot-2.png)
+
+---
+
+## 🧰 Tech Stack
+
+### 📦 Backend:
+- Python 3.10+
+- Django 4.2+
+- Django REST Framework
+- MySQL (for metadata)
+- ChromaDB (vector storage)
+- LangChain (context builder)
+- OpenAI API / LM Studio (LLM)
+- PyPDF2, Unstructured (document parser)
+
+### 💻 Frontend:
+- ReactJS via Next.js 14
+- Tailwind CSS
+- Axios (HTTP requests)
+- React-Markdown
 
 ---
 
 ## ⚙️ Setup Instructions
 
-### 🧠 Backend (Django + ChromaDB + MySQL)
+### 🧠 Backend (Django + MySQL + ChromaDB)
 
-
+```bash
 # 1. Clone the repo
-```bash
 git clone https://github.com/vaibhavxom/RAG-Integration-Assignment.git
-cd document-ai/backend
-```
-# 2. Create a virtual environment
-```bash
+cd RAG-Integration-Assignment/backend
+
+# 2. Create and activate a virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-```
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
 # 3. Install dependencies
-```bash
 pip install -r requirements.txt
-```
-# 4. Run migrations
-```bash
+
+# 4. Run DB migrations
 python manage.py migrate
-```
-# 5. Start server
-```bash
+
+# 5. Start the development server
 python manage.py runserver
 ```
 
-💻 Frontend (Next.js + Tailwind CSS)
+---
+
+### 💻 Frontend (ReactJS + Tailwind)
+
 ```bash
 cd ../frontend/document-ai-frontend
-```
-### Install frontend dependencies
-```bash
+
+# Install dependencies
 npm install
-```
-# Start the frontend dev server
-```bash
+
+# Start development server
 npm run dev
 ```
-### 📡 API Documentation  
-# `POST /documents/upload/`  
-Uploads a document and stores metadata in MySQL.  
-Extracts and splits text into chunks.  
-Embeds content using OpenAI or LM Studio.  
-Stores vectors in ChromaDB.   
 
-Payload (FormData):  
-- `file`: PDF or TXT document  
-- `title`: Title of the document
+---
+
+## 📡 API Documentation
+
+### `POST /documents/upload/`  
+- Uploads document and metadata to MySQL  
+- Extracts, chunks, and embeds content  
+- Stores vectors in ChromaDB  
+
+Payload:
+```form-data
+file: document.pdf  
+title: "My PDF"
+```
 
 Response:
 ```json
 {
   "id": 1,
   "title": "My PDF",
-  "filename": "my_pdf.pdf"
+  "filename": "document.pdf"
 }
 ```
 
-# `POST /documents/ask`
-- Accepts a question and document ID.
-- Searches similar vectors from ChromaDB.
-- Sends combined context and question to LLM (e.g., OpenAI).
-- Returns the answer.
+---
+
+### `POST /documents/ask/`  
+- Accepts question and document ID  
+- Retrieves matching vectors from ChromaDB  
+- Sends context and question to LLM  
+- Returns AI-generated answer  
 
 Payload:
-
 ```json
 {
   "document_id": 1,
-  "question": "What is the main idea of the document?"
-} 
+  "question": "What is the summary of this document?"
+}
 ```
-Response:
 
+Response:
 ```json
 {
-  "answer": "The document discusses the impact of AI on education..."
-} 
+  "answer": "This document outlines the principles of AI in education..."
+}
 ```
 
-### 💬 Sample Questions and Answers
-- Q: What is the key summary of this uploaded document?
--- A: This document outlines the core principles of machine learning and its application in finance.
+---
 
-- Q: What does the author say about sustainable energy?
--- A: The author emphasizes the urgency of transitioning to solar and wind to meet global goals.
+## 💬 Sample Questions and Answers
 
-# 📦 Backend Requirements (`requirements.txt`)
+**Q:** What is the key summary of this uploaded document?  
+**A:** The document outlines the core principles of machine learning and its application in finance.
 
-```bash
+**Q:** What does the author say about sustainable energy?  
+**A:** The author emphasizes the urgency of transitioning to solar and wind to meet global goals.
+
+---
+
+## 📦 Backend Requirements (`requirements.txt`)
+
+```text
 Django>=4.2
 djangorestframework
 mysqlclient
@@ -124,9 +152,11 @@ unstructured
 tiktoken
 ```
 
-📦 Frontend Dependencies (package.json)
-```json
+---
 
+## 📦 Frontend Dependencies (`package.json`)
+
+```json
 {
   "dependencies": {
     "axios": "^1.6.7",
@@ -138,9 +168,19 @@ tiktoken
   }
 }
 ```
-To install all frontend dependencies:
+
+Install frontend packages:
 
 ```bash
 cd frontend/document-ai-frontend
 npm install
 ```
+
+---
+
+## 📁 Sample Documents
+
+Include sample PDFs or text files in a `/sample_docs/` folder to test the upload and vectorization features.
+
+---
+
