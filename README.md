@@ -19,6 +19,10 @@ A RAG-based document QA system that enables users to upload PDFs or text files, 
 ### Chat with Document Page  
 ![Chat Screenshot](./Screenshot-2.png)
 
+
+### Complete UI
+![Complete UI](./Screenshot-3.png)
+
 ---
 
 ## 🧰 Tech Stack
