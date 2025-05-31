@@ -1,9 +1,15 @@
+# Standard library imports
 import os
-import fitz  # PyMuPDF for PDFs
-from docx import Document as DocxDocument
 import logging
+
+# PDF and DOCX processing
+import fitz  # PyMuPDF for reading PDFs
+from docx import Document as DocxDocument
+
+# For sending HTTP requests to LM Studio API
 import requests
 
+# Django REST Framework imports
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -12,20 +18,28 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
 
+# Importing models and serializers
 from .models import Document, Chunk, Query
 from .serializers import DocumentSerializer, ChunkSerializer, QuerySerializer
 
+# For generating text embeddings
 from sentence_transformers import SentenceTransformer
+
+# ChromaDB vector database
 import chromadb
 
+# Set up logging
 logger = logging.getLogger(__name__)
+
+# Load sentence transformer model for text embedding
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# Initialize ChromaDB client with persistence directory
+# Initialize ChromaDB client with persistent storage
 chroma_client = chromadb.Client(
     chromadb.config.Settings(persist_directory="./chroma_db")
 )
 
+# Function to extract text from uploaded file (PDF, DOCX, TXT)
 def extract_text(file_path):
     ext = os.path.splitext(file_path)[1].lower()
     if ext == '.pdf':
@@ -42,6 +56,7 @@ def extract_text(file_path):
     else:
         raise ValueError(f"Unsupported file type: {ext}")
 
+# Function to split long text into smaller chunks (smartly, paragraph-based)
 def smart_chunk_text(text, max_chunk_size=500):
     paragraphs = [p.strip() for p in text.split('\n') if p.strip()]
     chunks = []
@@ -56,10 +71,11 @@ def smart_chunk_text(text, max_chunk_size=500):
         chunks.append(current_chunk.strip())
     return chunks
 
+# Function to call LM Studio's local API and get a language model response
 def ask_lm_studio(prompt):
     LM_STUDIO_API_URL = "http://localhost:1234/v1/completions"
     payload = {
-        "model": "mistralai/mathstral-7b-v0.1",
+        "model": "mistralai/mathstral-7b-v0.1",  # Model to use
         "prompt": prompt,
         "max_tokens": 500,
         "temperature": 0.7,
@@ -80,6 +96,7 @@ def ask_lm_studio(prompt):
         logger.exception("Error calling LM Studio")
         return f"Error contacting LM Studio API: {str(e)}"
 
+# API View to handle document uploads
 @permission_classes([AllowAny])
 class UploadDocumentView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -90,6 +107,7 @@ class UploadDocumentView(APIView):
             document = serializer.save()
             file_path = document.file.path
             try:
+                # Extract metadata
                 document.file_type = os.path.splitext(file_path)[1].lower()
                 document.file_size = os.path.getsize(file_path)
                 if document.file_type == '.pdf':
@@ -105,6 +123,7 @@ class UploadDocumentView(APIView):
                 return Response({'error': f'Metadata extraction failed: {str(e)}'}, status=400)
 
             try:
+                # Extract full text from document
                 full_text = extract_text(file_path)
             except Exception as e:
                 logger.error(f"Text extraction failed: {e}")
@@ -112,9 +131,11 @@ class UploadDocumentView(APIView):
                 document.save()
                 return Response({'error': f'Text extraction failed: {str(e)}'}, status=400)
 
+            # Split text into chunks
             chunks = smart_chunk_text(full_text)
 
             try:
+                # Create vector collection and store embeddings
                 collection = chroma_client.get_or_create_collection(name=f"doc_{document.id}")
                 for i, chunk in enumerate(chunks):
                     embedding = model.encode(chunk).tolist()
@@ -135,12 +156,12 @@ class UploadDocumentView(APIView):
             logger.error(f"Invalid serializer data: {serializer.errors}")
             return Response(serializer.errors, status=400)
 
-
+# API view to list all documents
 class DocumentListView(ListAPIView):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
 
-
+# API view to ask question related to a document
 @permission_classes([AllowAny])
 class AskQuestionView(APIView):
     def get(self, request):
@@ -151,25 +172,30 @@ class AskQuestionView(APIView):
         question = request.data.get('question')
         top_k = int(request.data.get('top_k', 3))
 
+        # Validate input
         if not document_id or not question:
             return Response({'error': 'document_id and question are required.'}, status=400)
 
         try:
+            # Retrieve vector collection for the document
             collection = chroma_client.get_collection(name=f"doc_{document_id}")
         except Exception:
             return Response({'error': 'Vector collection not found.'}, status=404)
 
         try:
+            # Generate embedding for the question and perform similarity search
             question_embedding = model.encode(question).tolist()
             results = collection.query(query_embeddings=[question_embedding], n_results=top_k)
         except Exception as e:
             logger.error(f"Vector search failed: {e}")
             return Response({'error': f'Error during vector search: {str(e)}'}, status=500)
 
+        # Prepare the context from top-k retrieved chunks
         retrieved_chunks = results['documents'][0]
         chunk_ids = results['ids'][0]
-
         context = "\n\n".join([f"[{cid}]: {chunk}" for cid, chunk in zip(chunk_ids, retrieved_chunks)])
+
+        # Prepare prompt for LM Studio
         prompt = f"""You are a helpful assistant answering based on the following document excerpts:
 
 {context}
@@ -179,8 +205,10 @@ Question: {question}
 Answer with reference to the chunks like [chunk_id] if needed.
 """
 
+        # Get the answer from the language model
         answer = ask_lm_studio(prompt)
 
+        # Save query to DB
         Query.objects.create(document_id=document_id, question=question, answer=answer)
 
         return Response({
