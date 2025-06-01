@@ -1,13 +1,13 @@
 
 # 📄 Document Intelligence Platform
 
-A full-stack Retrieval-Augmented Generation (RAG) system that allows users to upload documents, store them locally, extract embeddings into ChromaDB, and query content using OpenAI/LLM. Built using Django, MySQL, ChromaDB, and ReactJS with Tailwind CSS.
+A full-stack Retrieval-Augmented Generation (RAG) system that allows users to upload documents, store them locally, extract embeddings into ChromaDB, and query content using LLM (LM Studio). Built using Django, MySQL, ChromaDB, and ReactJS with Tailwind CSS.
 
 ---
 
 ## 🔍 Description
 
-A RAG-based document QA system that enables users to upload PDFs or text files, automatically parse and embed content, store vectors using ChromaDB, and query using LLMs (OpenAI or LM Studio). Ideal for exploring unstructured document data with AI-powered answers.
+A RAG-based document QA system that enables users to upload PDFs or text files, automatically parse and embed content, store vectors using ChromaDB, and query using LLMs (LM Studio). Ideal for exploring unstructured document data with AI-powered answers.
 
 ---
 
@@ -34,7 +34,7 @@ A RAG-based document QA system that enables users to upload PDFs or text files, 
 - MySQL (for metadata)
 - ChromaDB (vector storage)
 - LangChain (context builder)
-- OpenAI API / LM Studio (LLM)
+- LM Studio (LLM)
 - PyPDF2, Unstructured (document parser)
 
 ### 💻 Frontend:
@@ -185,6 +185,13 @@ npm install
 ## 📁 Sample Documents
 
 Include sample PDFs or text files in a `/sample_docs/` folder to test the upload and vectorization features.
+
+---
+---
+
+## 👨‍💻 Author  
+
+Developed by Vaibhavxom (AKA Rushikesh Mithagare)
 
 ---
 
