@@ -1,19 +1,27 @@
-'use client';  // Mark this as a client-side React component
+'use client'; // Mark this as a client component to enable React hooks and client-only logic
 
-import { useState } from 'react';   // React hook for managing local state
-import DropZone from './DropZone';  // Component to upload/select a document
-import ChatBox from './ChatBox';    // Component to ask questions about the uploaded document
+import { useState } from 'react'; // Import useState to manage local component state
+import DropZone from './DropZone'; // Component to handle file uploads
+import dynamic from 'next/dynamic'; // Import dynamic to support client-only rendering
+
+// Dynamically import ChatBox and disable server-side rendering (SSR)
+// This is critical to prevent hydration mismatch errors in Next.js
+const ChatBox = dynamic(() => import('./ChatBox'), {
+  ssr: false, // Ensures ChatBox is only rendered on the client, avoiding SSR issues
+});
 
 export default function DocumentChatWrapper() {
-  // State to store the currently selected/uploaded document's ID
+  // Local state to store the uploaded document's ID
   const [documentId, setDocumentId] = useState(null);
 
   return (
     <div className="space-y-6">
-      {/* DropZone component handles file upload and updates documentId via setDocumentId */}
+      {/* File upload section */}
+      {/* DropZone will upload the file and pass the documentId via setDocumentId */}
       <DropZone setDocumentId={setDocumentId} />
 
-      {/* Render ChatBox only if a documentId is set (i.e., after a document is uploaded/selected) */}
+      {/* Conditionally render ChatBox only if a document is uploaded */}
+      {/* This prevents rendering ChatBox without a valid document context */}
       {documentId && <ChatBox documentId={documentId} />}
     </div>
   );

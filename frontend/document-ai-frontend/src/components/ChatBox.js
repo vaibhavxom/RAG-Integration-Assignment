@@ -57,7 +57,7 @@ export default function ChatBox({ documentId }) {
       {answer && (
         <div className="mt-4 p-4 bg-gray-100 border rounded-md">
           <strong className="text-green-700 block mb-2">AI Response:</strong>
-          <div className="prose prose-sm">
+          <div className="prose prose-sm text-black">
             <ReactMarkdown>{answer}</ReactMarkdown> {/* Render markdown-formatted answer */}
           </div>
         </div>
